@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Core;
+using Application.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain;
@@ -22,8 +23,10 @@ namespace Application.Activities
             private readonly DataContext _context;
             private readonly ILogger<List> _logger;
             private readonly IMapper _mapper;
-            public Handler(DataContext context, ILogger<List> logger, IMapper mapper)
+            private readonly IUserAccessor _userAccessor;
+            public Handler(DataContext context, ILogger<List> logger, IMapper mapper, IUserAccessor userAccessor)
             {
+                _userAccessor = userAccessor;
                 _mapper = mapper;
                 _logger = logger;
                 _context = context;
@@ -32,7 +35,7 @@ namespace Application.Activities
             public async Task<Result<List<ActivityDto>>> Handle(Query request, CancellationToken cancellationToken)
             {
                 // pass cancell token
-                
+
                 // try
                 // {
                 //     for (var i = 0; i < 10; i++)
@@ -48,7 +51,7 @@ namespace Application.Activities
                 // }
                 // return Result<List<Activity>>.Success(await _context.Activities.ToListAsync(cancellationToken));
 
-                
+
                 // using auto mapper, but end up SQL select other unwanted fields
 
                 // var activities = await _context.Activities
@@ -61,10 +64,10 @@ namespace Application.Activities
                 // return Result<List<ActivityDto>>.Success(activitiesToReturn);
 
                 var activities = await _context.Activities
-                    .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider)
+                    .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider, new { currentUsername = _userAccessor.GetUsername() })
                     .ToListAsync();
 
-                return Result<List<ActivityDto>>.Success(activities);                
+                return Result<List<ActivityDto>>.Success(activities);
 
             }
         }
